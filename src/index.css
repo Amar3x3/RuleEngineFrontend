@@ -1,0 +1,63 @@
+.App {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.sidebar {
+  width: 750px;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.sidebar h2, .sidebar h3 {
+  margin-top: 0;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.sidebar li {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sidebar input {
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+input[type='text'], input[type='email'] {
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+}
+
+form button {
+  padding: 8px 16px;
+}
+
+.btn{
+  padding: 0.4rem 0.7rem;
+  background-color: rgb(167, 166, 166);
+}
+
+.btn.delete img{
+  width: 20px;
+}
