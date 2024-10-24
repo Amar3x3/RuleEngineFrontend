@@ -9,7 +9,7 @@ const SignIn = ({ setUserEmail }) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('http://localhost:8080/api/rule/signin', null, {
+      const response = await axios.post('https://ruleenginebackend-1qwp.onrender.com/api/rule/signin', null, {
         params: { email }
       });
 
@@ -34,7 +34,7 @@ const SignIn = ({ setUserEmail }) => {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <button type="submit">Sign In</button>
+        <button type="submit">Sign In / Log in</button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
