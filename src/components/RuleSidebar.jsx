@@ -67,7 +67,7 @@ const RuleSidebar = ({ userEmail }) => {
 
   const addRule = async () => {
     try {
-      const res = await axios.post('https://ruleenginebackend-1qwp.onrender.com/api/rule/', 
+      const res = await axios.post('https://ruleenginebackend-1qwp.onrender.com/api/rule', 
         {
           rule: rule,
         },
