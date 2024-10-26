@@ -1,3 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
 .App {
   font-family: Arial, sans-serif;
   padding: 20px;
@@ -60,4 +66,49 @@ form button {
 
 .btn.delete img{
   width: 20px;
+}
+.sign-in-container{
+  width: 350px;
+  height: 300px;
+  background-color: white;
+  
+}
+.outer-cont-full{
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+td{
+  padding: 0.4rem 0.7rem;  
+  border: 1px solid rgb(142, 142, 235);
+}
+tr:hover{
+  background-color: rgb(207, 204, 204);
+  transition: 0.3s;
+}
+.ast-container{
+  background-color: #272822;
+  width: 550px;
+  height: 80vh;
+  overflow: scroll;
+  margin-left: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content:start;
+  padding: 1rem;
+  color: white;
+}
+.rules-cont{
+  position: relative;
+  z-index: 1;
+  width: 900px;
+}
+.abs-top-alerts{
+  position: absolute;
+  top: 1rem;
+  left: 45%;
+  z-index: 2;
 }
