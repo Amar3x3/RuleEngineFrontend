@@ -41,7 +41,7 @@ const SignIn = ({ setUserEmail }) => {
               <form onSubmit={handleSignIn}>
                 <input
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Use any Email eg-a@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
