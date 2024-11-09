@@ -11,13 +11,16 @@ const RuleSidebar = ({ userEmail }) => {
   const [success, setSuccess] = useState('');
   const [userDataJson, setUserDataJson] = useState('');
   const [evaluationResult, setEvaluationResult] = useState(null);
-  const [ast, setAst] = useState(null);  // AST is initialized as null
+  const [combinedResult, setCombinedResult] = useState(null);
+  const [selectedRules, setSelectedRules] = useState([]);
+  const [ast, setAst] = useState(null);
+  const [combineOperator, setCombineOperator] = useState('AND');
 
-  // Fetch rules when the userEmail changes
+
   useEffect(() => {
     const fetchRules = async () => {
       try {
-        const response = await axios.get('https://ruleenginebackend-1qwp.onrender.com/api/rule/getAll', {
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/rule/getAll`, {
           params: { email: userEmail }
         });
         setRules(response.data);
@@ -28,7 +31,7 @@ const RuleSidebar = ({ userEmail }) => {
         setTimeout(() => {
           setError('');
         }, 3000);
-        
+
         console.error(err);
       }
     };
@@ -36,48 +39,47 @@ const RuleSidebar = ({ userEmail }) => {
     if (userEmail) {
       fetchRules();
     }
-  }, [userEmail, rules, rule, ast, userDataJson]);
+  }, [userEmail, rules, rule, ast, userDataJson, combineOperator, selectedRules]);
 
   const evaluateRule = async () => {
     try {
-      // Parse userDataJson string into a JavaScript object
+
       const parsedUserData = JSON.parse(userDataJson);
 
-      // Make POST request to backend for rule evaluation
-      const res = await axios.post('https://ruleenginebackend-1qwp.onrender.com/api/rule/evaluate',
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/rule/evaluate`,
         {
-          rule: rule,             // Send rule string
-          userData: parsedUserData // Send parsed user data as an object
+          rule: rule,
+          userData: parsedUserData
         },
         {
-          params: { email: userEmail },  // Send email as query parameter
+          params: { email: userEmail },
           headers: {
             'Content-Type': 'application/json'
           }
         }
       );
 
-      // Get the evaluation result from the response
       setEvaluationResult(res.data.result);
+      setCombinedResult('');
       setAst(res.data.ast);
-      setSuccess('Rule Evaluated Succesfully')
+      alert("Rule Evaluated Succesfully");
       setTimeout(() => {
         setSuccess('');
       }, 3000);
-      
-      // Set AST from response
+
+
       console.log(res.data.ast.__proto__)
       setError('');
     } catch (err) {
       if (err instanceof SyntaxError) {
-        setSuccess('')
+
         setError('Invalid JSON format in the user data.');
-        setTimeout(() => {
-          setError('');
-        }, 7000);
+        alert('Invalid JSON format in the user data.')
+
       } else {
-        setSuccess('')
+
         setError('Failed to evaluate the rule.');
+
         setTimeout(() => {
           setError('');
         }, 7000);
@@ -88,22 +90,22 @@ const RuleSidebar = ({ userEmail }) => {
 
   const addRule = async () => {
     try {
-      const res = await axios.post('https://ruleenginebackend-1qwp.onrender.com/api/rule',
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/rule`,
         {
           rule: rule,
         },
         {
-          params: { email: userEmail }, // Include email in query params
+          params: { email: userEmail },
           headers: {
             'Content-Type': 'application/json'
           }
         });
 
-      // Update rule list after adding a new rule
+
       setRules([...rules, { ruleString: rule }]);
-      setAst(res);
-     
-      setRule(''); // Reset input field
+      setAst(res.data);
+
+      setRule('');
       setError('');
       setSuccess('Rule Added Succesfully')
 
@@ -122,11 +124,11 @@ const RuleSidebar = ({ userEmail }) => {
 
   const deleteRule = async (ruleId) => {
     try {
-      await axios.delete(`https://ruleenginebackend-1qwp.onrender.com/api/rule/${ruleId}`, {
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/rule/${ruleId}`, {
         params: { email: userEmail }
       });
 
-      // Update rule list after deleting
+
       setRules(rules.filter((rule) => rule.id !== ruleId));
       setError('');
     } catch (err) {
@@ -139,33 +141,49 @@ const RuleSidebar = ({ userEmail }) => {
     setRule(ruleString);
   };
 
+
+  const toggleRuleSelection = (ruleId) => {
+    setSelectedRules((prevSelectedRules) =>
+      prevSelectedRules.includes(ruleId)
+        ? prevSelectedRules.filter((id) => id !== ruleId)
+        : [...prevSelectedRules, ruleId]
+    );
+  };
+
+
+  const combineRules = async () => {
+    try {
+      const selectedRuleStrings = rules
+        .filter((rule) => selectedRules.includes(rule.id))
+        .map((rule) => rule.ruleString);
+
+      if (!userDataJson) alert("fill the user data too for evaluation")
+      const parsedUserData = JSON.parse(userDataJson);
+
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/rule/combine`, {
+        rules: selectedRuleStrings,
+        userData: parsedUserData,
+        operator:combineOperator
+      });
+
+      setCombinedResult(response.data.result);
+      setAst(response.data.ast)
+      alert("Rules Combined and Evaluated Succesfully")
+      setError('');
+      setEvaluationResult('')
+    } catch (err) {
+      setError('Failed to combine or evaluate rules.');
+      console.error(err);
+    }
+  };
+
   return (
     <>
-      
+
 
       <div className="sidebar bg-gradient-to-r from-rose-100 to-teal-100 outer-cont-full">
 
-      <div className="abs-top-alerts">
-      {error ? <div class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
-        <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-        </svg>
-        <span class="sr-only">Info</span>
-        <div>
-          {error}
-        </div>
-      </div> : ''}
-     
-     {success ?  <div class="flex items-center p-4 mb-4 text-sm text-green-800 border border-green-300 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800" role="alert">
-        <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-        </svg>
-        <span class="sr-only">Info</span>
-        <div>
-         {success}
-        </div>
-      </div> : ''}
-      </div>
+
 
         <div className='rules-cont'>
           <h2 className='font-sans ... text-3xl font-bold'>Your Rules</h2>
@@ -175,7 +193,7 @@ const RuleSidebar = ({ userEmail }) => {
                 <th class="border border-slate-300 ... font-sans ...">Rule</th>
                 <th class="border border-slate-300 ... font-sans ...">Delete</th>
                 <th class="border border-slate-300 ... font-sans ...">Evaluate</th>
-
+                <th class="border border-slate-300 ... font-sans ...">Selected</th>
               </tr>
             </thead>
 
@@ -204,6 +222,14 @@ const RuleSidebar = ({ userEmail }) => {
 
                       </div>
                     </td>
+
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedRules.includes(rule.id)}
+                        onChange={() => toggleRuleSelection(rule.id)}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -213,10 +239,10 @@ const RuleSidebar = ({ userEmail }) => {
           </table>
 
           <div>
-            <h3 className='font-sans ... text-3xl font-bold'>Add New Rule</h3>
+            <h3 className='font-sans ... text-3xl font-bold'> Rule </h3>
             <input
               type="text"
-              placeholder={`${rule ? rule : 'Enter new rule'}`}
+              placeholder={`${rule ? rule : "Enter new rule      e.g. (age > 22 AND gender = 'Male') "}`}
               value={rule}
               onChange={(e) => setRule(e.target.value)}
               className='font-sans ..."'
@@ -224,8 +250,8 @@ const RuleSidebar = ({ userEmail }) => {
             <button className=' text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800' onClick={addRule}>Add Rule</button>
           </div>
 
-          <div className="evaluate-container">
-            <div>
+          <div className="evaluate-container ">
+            <div className='userdata-container'>
               <h3 className='font-sans ... text-3xl font-bold'>User Data (as JSON)</h3>
               <textarea
                 placeholder='Enter user data in JSON format (e.g., {"age": 32, "department": "Sales"})'
@@ -233,32 +259,50 @@ const RuleSidebar = ({ userEmail }) => {
                 onChange={(e) => setUserDataJson(e.target.value)}
                 rows="6"
                 style={{ width: '100%' }}
-                className='font-sans ... flex align-middle justify-center p-8'
+                className='font-sans ... flex align-middle justify-center p-8 shadow-2xl'
               />
+              {evaluationResult !== null && (
+                <div className='abs-result-cont'>
+                  <h4>{evaluationResult ? <div className='result-true'>True</div> : <div className='result-false'>False</div>}</h4>
+                </div>
+              )}
+              {combinedResult !== null && (
+                <div className='abs-result-cont'>
+                  <h4> {combinedResult ? <div className='result-true'>True</div> : <div className='result-false'>False</div>}</h4>
+                </div>
+              )}
+
             </div>
 
-            {/* Button to evaluate the rule */}
-            <button className=' text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800' onClick={evaluateRule}>Evaluate Rule</button>
 
-            {/* Show evaluation result */}
-            {evaluationResult !== null && (
-              <div>
-                <h4>Evaluation Result: {evaluationResult ? 'True' : 'False'}</h4>
-              </div>
-            )}
+            <button className='mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800' onClick={evaluateRule}>Evaluate Rule</button>
+
+            <button
+              className='mt-2 ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800'
+              onClick={combineRules}>Combine and Evaluate Selected Rules</button>
+
+            
+              <label>Select Combine Operator</label>
+              <select value={combineOperator} onChange={(e) => setCombineOperator(e.target.value)}>
+                <option value="AND">AND</option>
+                <option value="OR">OR</option>
+              </select>
+            
+
+
+
           </div>
 
         </div>
 
-        {/* Display the AST in a readable format */}
+        {/* AST in a readable format */}
         <div className="ast-container shadow-2xl">
           <h3 className='font-sans ... text-3xl font-bold m-3'>Abstract Syntax Tree (AST)</h3>
           {ast ? (
-            
-              
-  < JSONPretty data={ast}></JSONPretty> 
-  // <JSONViewer json={ast} />
-               // Pretty print AST with 2-space indentation
+
+
+            < JSONPretty data={ast}></JSONPretty>
+
           ) : (
             <p>No AST available</p>
           )}
