@@ -30,7 +30,7 @@ const SignIn = ({ setUserEmail }) => {
 
       <div class="flex flex-col justify-center px-6 py-12 lg:px-8 sign-in-container shadow-2xl">
         <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-          <p className='mt-10 text-center text-xl font-bold leading-9 tracking-tight  font-sans ...'>Backend is on free tier so it might take time usually 30 seconds to respond, please be patient</p>
+          <p className='mt-10 text-center text-sm font-bold leading-9 tracking-tight  font-sans ...'>Backend is on free tier so it might take time usually 30 seconds to respond, please be patient</p>
           <h2 class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-sky-500  font-sans ...">Sign in to your account</h2>
         </div>
 
